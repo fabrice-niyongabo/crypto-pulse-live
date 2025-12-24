@@ -38,6 +38,19 @@ export interface CoinData {
   lowPrice: number;
 }
 
+// Exchange info symbol data from Binance API
+export interface BinanceSymbolInfo {
+  symbol: string;
+  status: string; // "TRADING", "BREAK", etc.
+  baseAsset: string;
+  quoteAsset: string;
+}
+
+// Exchange info response from Binance API
+export interface BinanceExchangeInfo {
+  symbols: BinanceSymbolInfo[];
+}
+
 // WebSocket ticker update from Binance stream
 export interface WebSocketTicker {
   e: string;      // Event type

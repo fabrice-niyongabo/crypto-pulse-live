@@ -3,16 +3,79 @@
  * Handles fetching initial coin data from REST API
  */
 
-import type { BinanceTicker, CoinData } from '@/types/crypto';
+import type {
+  BinanceTicker,
+  BinanceExchangeInfo,
+  CoinData,
+} from '@/types/crypto';
 
 const BINANCE_REST_API = 'https://api.binance.com/api/v3';
 
+// Cache for exchange info (doesn't update frequently)
+let exchangeInfoCache: BinanceExchangeInfo | null = null;
+let exchangeInfoCacheTime: number = 0;
+const EXCHANGE_INFO_CACHE_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+
+/**
+ * Fetches exchange info from Binance API
+ * Caches the result since it doesn't update frequently
+ */
+async function fetchExchangeInfo(): Promise<BinanceExchangeInfo> {
+  const now = Date.now();
+  
+  // Return cached data if it's still valid
+  if (
+    exchangeInfoCache &&
+    now - exchangeInfoCacheTime < EXCHANGE_INFO_CACHE_DURATION
+  ) {
+    return exchangeInfoCache;
+  }
+
+  try {
+    const response = await fetch(`${BINANCE_REST_API}/exchangeInfo`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data: BinanceExchangeInfo = await response.json();
+    
+    // Update cache
+    exchangeInfoCache = data;
+    exchangeInfoCacheTime = now;
+    
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch exchange info:', error);
+    // If we have cached data, return it even if expired
+    if (exchangeInfoCache) {
+      return exchangeInfoCache;
+    }
+    throw error;
+  }
+}
+
 /**
  * Fetches 24hr ticker data for all trading pairs
- * Filters to USDT pairs only and sorts by top gainers
+ * Filters to USDT pairs only with TRADING status and sorts by top gainers
  */
 export async function fetchTopGainers(): Promise<CoinData[]> {
   try {
+    // First, fetch exchange info to get active trading symbols
+    const exchangeInfo = await fetchExchangeInfo();
+    
+    // Create a Set of active USDT trading symbols for quick lookup
+    const activeTradingSymbols = new Set<string>();
+    exchangeInfo.symbols.forEach((symbolInfo) => {
+      if (
+        symbolInfo.status === 'TRADING' &&
+        symbolInfo.quoteAsset === 'USDT'
+      ) {
+        activeTradingSymbols.add(symbolInfo.symbol);
+      }
+    });
+
+    // Fetch 24hr ticker data
     const response = await fetch(`${BINANCE_REST_API}/ticker/24hr`);
     
     if (!response.ok) {
@@ -21,8 +84,12 @@ export async function fetchTopGainers(): Promise<CoinData[]> {
     
     const data: BinanceTicker[] = await response.json();
     
-    // Filter only USDT trading pairs
-    const usdtPairs = data.filter((ticker) => ticker.symbol.endsWith('USDT'));
+    // Filter only USDT trading pairs that are actively trading
+    const usdtPairs = data.filter(
+      (ticker) =>
+        ticker.symbol.endsWith('USDT') &&
+        activeTradingSymbols.has(ticker.symbol)
+    );
     
     // Map to our CoinData format
     const coins: CoinData[] = usdtPairs.map((ticker) => ({

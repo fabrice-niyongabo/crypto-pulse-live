@@ -3,30 +3,35 @@
  * Displays coin symbol, price, and percentage change with animations
  */
 
-import { memo, useState, useEffect } from 'react';
-import type { CoinData } from '@/types/crypto';
-import { formatPrice, formatPercent, formatVolume } from '@/lib/binanceApi';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { memo, useState, useEffect } from "react";
+import type { CoinData } from "@/types/crypto";
+import { formatPrice, formatPercent, formatVolume } from "@/lib/binanceApi";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface CoinRowProps {
   coin: CoinData;
   rank: number;
+  isHighlighted?: boolean;
 }
 
 /**
  * Memoized coin row for performance
  * Prevents unnecessary re-renders when other coins update
  */
-export const CoinRow = memo(function CoinRow({ coin, rank }: CoinRowProps) {
-  const [flash, setFlash] = useState<'up' | 'down' | null>(null);
+export const CoinRow = memo(function CoinRow({
+  coin,
+  rank,
+  isHighlighted = false,
+}: CoinRowProps) {
+  const [flash, setFlash] = useState<"up" | "down" | null>(null);
   const [prevPrice, setPrevPrice] = useState(coin.lastPrice);
 
   // Flash effect when price changes
   useEffect(() => {
     if (coin.lastPrice !== prevPrice) {
-      setFlash(coin.lastPrice > prevPrice ? 'up' : 'down');
+      setFlash(coin.lastPrice > prevPrice ? "up" : "down");
       setPrevPrice(coin.lastPrice);
-      
+
       // Remove flash after animation
       const timeout = setTimeout(() => setFlash(null), 500);
       return () => clearTimeout(timeout);
@@ -39,17 +44,19 @@ export const CoinRow = memo(function CoinRow({ coin, rank }: CoinRowProps) {
     <div
       className={`
         group relative flex items-center gap-4 px-4 py-3 
-        bg-card/50 backdrop-blur-sm rounded-lg border border-border/50
-        hover:bg-card hover:border-primary/30 transition-all duration-300
-        ${flash === 'up' ? 'animate-flash-green' : ''}
-        ${flash === 'down' ? 'animate-flash-red' : ''}
+        backdrop-blur-sm rounded-lg border transition-all duration-300
+        ${
+          isHighlighted
+            ? "bg-primary/20 border-primary/50 shadow-lg shadow-primary/20"
+            : "bg-card/50 border-border/50 hover:bg-card hover:border-primary/30"
+        }
+        ${flash === "up" ? "animate-flash-green" : ""}
+        ${flash === "down" ? "animate-flash-red" : ""}
       `}
     >
       {/* Rank indicator */}
       <div className="w-8 text-center">
-        <span className="text-xs font-mono text-muted-foreground">
-          #{rank}
-        </span>
+        <span className="text-xs font-mono text-muted-foreground">#{rank}</span>
       </div>
 
       {/* Coin symbol and base asset */}
@@ -76,7 +83,7 @@ export const CoinRow = memo(function CoinRow({ coin, rank }: CoinRowProps) {
       <div
         className={`
           flex items-center gap-1 px-3 py-1.5 rounded-md font-mono text-sm font-medium
-          ${isGainer ? 'bg-gain/20 text-gain' : 'bg-loss/20 text-loss'}
+          ${isGainer ? "bg-gain/20 text-gain" : "bg-loss/20 text-loss"}
         `}
       >
         {isGainer ? (
@@ -88,11 +95,11 @@ export const CoinRow = memo(function CoinRow({ coin, rank }: CoinRowProps) {
       </div>
 
       {/* Hover glow effect */}
-      <div 
+      <div
         className={`
           absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 
           transition-opacity duration-300 pointer-events-none
-          ${isGainer ? 'shadow-glow-gain' : 'shadow-glow-loss'}
+          ${isGainer ? "shadow-glow-gain" : "shadow-glow-loss"}
         `}
       />
     </div>

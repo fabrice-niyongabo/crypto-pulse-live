@@ -3,26 +3,29 @@
  * Handles coins data, pagination, search, and loading states
  */
 
-import { create } from 'zustand';
-import type { CoinData } from '@/types/crypto';
+import { create } from "zustand";
+import type { CoinData } from "@/types/crypto";
 
 interface CryptoState {
   // Coin data
   coins: CoinData[];
   filteredCoins: CoinData[];
-  
+
   // Pagination
   currentPage: number;
   coinsPerPage: number;
-  
+
   // Search
   searchQuery: string;
-  
+
   // Loading and error states
   isLoading: boolean;
   error: string | null;
   isConnected: boolean;
-  
+
+  // Highlighted coin for player navigation
+  highlightedCoin: string | null;
+
   // Actions
   setCoins: (coins: CoinData[]) => void;
   updateCoin: (symbol: string, updates: Partial<CoinData>) => void;
@@ -33,6 +36,7 @@ interface CryptoState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setConnected: (connected: boolean) => void;
+  setHighlightedCoin: (symbol: string | null) => void;
 }
 
 export const useCryptoStore = create<CryptoState>((set, get) => ({
@@ -41,10 +45,11 @@ export const useCryptoStore = create<CryptoState>((set, get) => ({
   filteredCoins: [],
   currentPage: 1,
   coinsPerPage: 10,
-  searchQuery: '',
+  searchQuery: "",
   isLoading: true,
   error: null,
   isConnected: false,
+  highlightedCoin: null,
 
   // Set initial coins list and apply filtering
   setCoins: (coins) => {
@@ -74,7 +79,7 @@ export const useCryptoStore = create<CryptoState>((set, get) => ({
 
   // Pagination controls
   setCurrentPage: (page) => set({ currentPage: page }),
-  
+
   nextPage: () => {
     const { currentPage, filteredCoins, coinsPerPage } = get();
     const totalPages = Math.ceil(filteredCoins.length / coinsPerPage);
@@ -82,7 +87,7 @@ export const useCryptoStore = create<CryptoState>((set, get) => ({
       set({ currentPage: currentPage + 1 });
     }
   },
-  
+
   prevPage: () => {
     const { currentPage } = get();
     if (currentPage > 1) {
@@ -94,6 +99,7 @@ export const useCryptoStore = create<CryptoState>((set, get) => ({
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),
   setConnected: (connected) => set({ isConnected: connected }),
+  setHighlightedCoin: (symbol) => set({ highlightedCoin: symbol }),
 }));
 
 /**

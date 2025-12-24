@@ -3,16 +3,16 @@
  * Contains header, search, coin list, and pagination
  */
 
-import { useEffect } from 'react';
-import { useCryptoStore } from '@/store/useCryptoStore';
-import { useBinanceWebSocket } from '@/hooks/useBinanceWebSocket';
-import { fetchTopGainers } from '@/lib/binanceApi';
-import { SearchBar } from './SearchBar';
-import { CoinList } from './CoinList';
-import { Paginator } from './Paginator';
-import { ConnectionStatus } from './ConnectionStatus';
-import { TrendingUp, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect } from "react";
+import { useCryptoStore } from "@/store/useCryptoStore";
+import { useBinanceWebSocket } from "@/hooks/useBinanceWebSocket";
+import { fetchTopGainers } from "@/lib/binanceApi";
+import { SearchBar } from "./SearchBar";
+import { CoinList } from "./CoinList";
+import { Paginator } from "./Paginator";
+import { ConnectionStatus } from "./ConnectionStatus";
+import { TrendingUp, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function Sidebar() {
   const { setCoins, setLoading, setError, isLoading } = useCryptoStore();
@@ -25,13 +25,13 @@ export function Sidebar() {
     async function loadCoins() {
       setLoading(true);
       setError(null);
-      
+
       try {
         const coins = await fetchTopGainers();
         setCoins(coins);
       } catch (error) {
         setError(
-          error instanceof Error ? error.message : 'Failed to load coins'
+          error instanceof Error ? error.message : "Failed to load coins"
         );
       }
     }
@@ -45,15 +45,13 @@ export function Sidebar() {
   const handleRefresh = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const coins = await fetchTopGainers();
       setCoins(coins);
       reconnect();
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : 'Failed to refresh'
-      );
+      setError(error instanceof Error ? error.message : "Failed to refresh");
     }
   };
 
@@ -67,9 +65,7 @@ export function Sidebar() {
               <TrendingUp className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">
-                Top Gainers
-              </h1>
+              <h1 className="text-xl font-bold text-foreground">Top Gainers</h1>
               <p className="text-xs text-muted-foreground">
                 USDT Pairs • 24h Change
               </p>
@@ -83,7 +79,7 @@ export function Sidebar() {
             className="text-muted-foreground hover:text-foreground"
           >
             <RefreshCw
-              className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`}
+              className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
             />
           </Button>
         </div>
